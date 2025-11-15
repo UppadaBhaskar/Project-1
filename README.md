@@ -1,98 +1,120 @@
 # College Management System
 
-A Flask-based web application for college faculty to manage student data. Faculty can register, login, view student lists, create new students, view profiles, edit student information, and delete students.
+A full-stack web application for college faculty to manage student data. Built with Flask (backend), SQLite (database), and React (frontend).
 
 ## Features
 
-- **Faculty Authentication**
-  - Registration page for new faculty members
-  - Login page for existing faculty members
-  - Password validation (max 12 characters)
-
-- **Student Management**
+- **Faculty Authentication**: Registration and login system for faculty members
+- **Student Management**: 
   - View list of all students with roll number, name, and section
   - Create new students with confirmation modal
   - View detailed student profiles
-  - Edit student information (except roll number)
-  - Delete students with confirmation dialog
+  - Update student information (except roll number)
+  - Delete students
 
-## Database Schema
+## Tech Stack
 
-### Faculty Table
-- `faculty_id` (INTEGER PRIMARY KEY)
-- `faculty_name` (VARCHAR NOT NULL)
-- `password` (VARCHAR(12) NOT NULL)
+- **Backend**: Flask (Python)
+- **Database**: SQLite3
+- **Frontend**: React.js with React Router
+- **HTTP Client**: Axios
 
-### Student Table
-- `roll_number` (VARCHAR(10) PRIMARY KEY)
-- `student_name` (VARCHAR NOT NULL)
-- `section` (VARCHAR(5))
-- `email` (VARCHAR NOT NULL)
-- `address` (VARCHAR)
-- `phone_number` (INTEGER NOT NULL)
-- `college` (VARCHAR)
+## Setup Instructions
 
-## Installation
+### Prerequisites
+
+- Python 3.7+
+- Node.js 14+
+- npm or yarn
+
+### Backend Setup
 
 1. Install Python dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-2. Run the application:
+2. Run the Flask server:
 ```bash
 python app.py
 ```
 
-3. Open your browser and navigate to:
-```
-http://localhost:5000
+The backend will run on `http://localhost:5000`
+
+### Frontend Setup
+
+1. Install Node dependencies:
+```bash
+npm install
 ```
 
-## Default Credentials
+2. Start the React development server:
+```bash
+npm start
+```
 
-The database is seeded with the following faculty accounts:
-- Username: `abc`, Password: `abc123`
-- Username: `def`, Password: `abc123`
+The frontend will run on `http://localhost:3000`
+
+### Database
+
+The database (`college_management.db`) will be automatically created and initialized with seed data when you first run the Flask application.
+
+**Seed Data:**
+- Faculty accounts: `abc/abc123` and `def/abc123`
+- Sample student: Roll number `AB23`, Name `Manu`, Section `A`
 
 ## Project Structure
 
 ```
 Project-1/
-├── app.py                 # Main Flask application
+├── app.py                 # Flask backend application
 ├── requirements.txt       # Python dependencies
-├── college_management.db  # SQLite database (created on first run)
-├── templates/            # HTML templates
-│   ├── base.html
-│   ├── login.html
-│   ├── register.html
-│   ├── home.html
-│   ├── create_student.html
-│   ├── profile.html
-│   └── edit_student.html
-└── static/               # Static files
-    ├── style.css         # CSS styles
-    └── script.js         # JavaScript for modals and interactions
+├── package.json          # Node.js dependencies
+├── college_management.db # SQLite database
+├── public/               # Public assets
+│   └── index.html
+├── src/                  # React source code
+│   ├── App.js           # Main app component with routing
+│   ├── App.css
+│   ├── index.js         # React entry point
+│   ├── index.css
+│   └── components/      # React components
+│       ├── Login.js
+│       ├── Register.js
+│       ├── Home.js
+│       ├── CreateStudent.js
+│       ├── StudentProfile.js
+│       └── UpdateStudent.js
+└── build/               # Production build (generated)
 ```
+
+## API Endpoints
+
+### Authentication
+- `POST /api/register` - Register new faculty
+- `POST /api/login` - Faculty login
+- `POST /api/logout` - Logout
+- `GET /api/check-auth` - Check authentication status
+
+### Students
+- `GET /api/students` - Get all students
+- `POST /api/students` - Create new student
+- `GET /api/students/<roll_number>` - Get student by roll number
+- `PUT /api/students/<roll_number>` - Update student
+- `DELETE /api/students/<roll_number>` - Delete student
 
 ## Usage
 
-1. **Registration/Login**: Start by registering a new faculty account or logging in with existing credentials.
-
-2. **View Students**: After logging in, you'll see the home page with a list of all students.
-
-3. **Create Student**: Click "Create Student" button, fill in the form, and confirm the creation.
-
-4. **View Profile**: Click "View Profile" on any student row to see detailed information.
-
-5. **Edit Student**: From the profile page, click "Edit" to modify student details (roll number cannot be changed).
-
-6. **Delete Student**: From the profile page, click the delete icon and confirm the deletion.
+1. Start both backend and frontend servers
+2. Navigate to `http://localhost:3000`
+3. Register a new faculty account or login with seed credentials
+4. View, create, update, or delete students
 
 ## Notes
 
-- Sessions are not yet implemented (as per requirements)
-- The database is automatically initialized with seed data on first run
-- All forms include validation for required fields
-- Confirmation modals prevent accidental actions
+- All routes are protected and require authentication
+- Roll number is the primary key and cannot be changed after creation
+- Password hashing is implemented for security
+- Session-based authentication is used
+
 

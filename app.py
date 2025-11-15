@@ -1,19 +1,22 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, request, jsonify, session, send_from_directory
+from flask_cors import CORS
 import sqlite3
 import os
+from werkzeug.security import generate_password_hash, check_password_hash
 
-app = Flask(__name__)
-app.secret_key = 'your-secret-key-here'  # Change this in production
+app = Flask(__name__, static_folder='build', static_url_path='')
+app.secret_key = 'your-secret-key-change-in-production'
+CORS(app, supports_credentials=True)
 
 DATABASE = 'college_management.db'
 
-def get_db_connection():
+def get_db():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
 
 def init_db():
-    conn = get_db_connection()
+    conn = get_db()
     cursor = conn.cursor()
     
     # Create faculty table
@@ -21,11 +24,11 @@ def init_db():
         CREATE TABLE IF NOT EXISTS faculty (
             faculty_id INTEGER PRIMARY KEY AUTOINCREMENT,
             faculty_name VARCHAR NOT NULL,
-            password VARCHAR(12) NOT NULL
+            password VARCHAR(255) NOT NULL
         )
     ''')
     
-    # Create student table with college column
+    # Create student table with college field
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS student (
             roll_number VARCHAR(10) PRIMARY KEY,
@@ -38,222 +41,215 @@ def init_db():
         )
     ''')
     
-    # Add college column if it doesn't exist (migration for existing databases)
-    try:
-        cursor.execute('ALTER TABLE student ADD COLUMN college VARCHAR')
-    except sqlite3.OperationalError:
-        # Column already exists, ignore
-        pass
-    
     # Check if seed data exists
-    cursor.execute('SELECT COUNT(*) FROM faculty')
-    if cursor.fetchone()[0] == 0:
-        cursor.execute("INSERT INTO faculty(faculty_name, password) VALUES ('abc', 'abc123')")
-        cursor.execute("INSERT INTO faculty(faculty_name, password) VALUES ('def', 'abc123')")
+    cursor.execute('SELECT COUNT(*) as count FROM faculty')
+    if cursor.fetchone()['count'] == 0:
+        cursor.execute("INSERT INTO faculty(faculty_name, password) VALUES ('abc', ?)", 
+                      (generate_password_hash('abc123'),))
+        cursor.execute("INSERT INTO faculty(faculty_name, password) VALUES ('def', ?)", 
+                      (generate_password_hash('abc123'),))
     
-    cursor.execute('SELECT COUNT(*) FROM student')
-    if cursor.fetchone()[0] == 0:
+    cursor.execute('SELECT COUNT(*) as count FROM student')
+    if cursor.fetchone()['count'] == 0:
         cursor.execute('''
-            INSERT INTO student(roll_number, student_name, section, email, address, phone_number, college)
+            INSERT INTO student(roll_number, student_name, section, email, address, phone_number, college) 
             VALUES ('AB23', 'Manu', 'A', 'manu@example.com', 'Banglore', 1234567890, 'ABC College')
         ''')
     
     conn.commit()
     conn.close()
 
-@app.route('/')
-def index():
-    return redirect(url_for('login'))
+# Initialize database on startup
+init_db()
 
-@app.route('/register', methods=['GET', 'POST'])
+# Auth routes
+@app.route('/api/register', methods=['POST'])
 def register():
-    if request.method == 'POST':
-        faculty_name = request.form.get('username')
-        password = request.form.get('password')
-        
-        if not faculty_name or not password:
-            flash('Please fill in all fields', 'error')
-            return render_template('register.html')
-        
-        if len(password) > 12:
-            flash('Password must be 12 characters or less', 'error')
-            return render_template('register.html')
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Check if faculty already exists
-        cursor.execute('SELECT * FROM faculty WHERE faculty_name = ?', (faculty_name,))
-        if cursor.fetchone():
-            conn.close()
-            flash('Faculty name already exists', 'error')
-            return render_template('register.html')
-        
-        # Insert new faculty
-        cursor.execute('INSERT INTO faculty(faculty_name, password) VALUES (?, ?)', (faculty_name, password))
-        conn.commit()
-        conn.close()
-        
-        flash('Registration successful! Please login.', 'success')
-        return redirect(url_for('login'))
+    data = request.json
+    faculty_name = data.get('faculty_name')
+    password = data.get('password')
     
-    return render_template('register.html')
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        faculty_name = request.form.get('username')
-        password = request.form.get('password')
-        
-        if not faculty_name or not password:
-            flash('Please fill in all fields', 'error')
-            return render_template('login.html')
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM faculty WHERE faculty_name = ? AND password = ?', (faculty_name, password))
-        faculty = cursor.fetchone()
-        conn.close()
-        
-        if faculty:
-            # In future, we'll use sessions here
-            return redirect(url_for('home'))
-        else:
-            flash('Invalid credentials', 'error')
-            return render_template('login.html')
+    if not faculty_name or not password:
+        return jsonify({'error': 'Faculty name and password are required'}), 400
     
-    return render_template('login.html')
-
-@app.route('/home')
-def home():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT roll_number, student_name, section FROM student ORDER BY roll_number')
-    students = cursor.fetchall()
-    conn.close()
-    return render_template('home.html', students=students)
-
-@app.route('/create_student', methods=['GET', 'POST'])
-def create_student():
-    if request.method == 'POST':
-        roll_number = request.form.get('roll_number')
-        student_name = request.form.get('student_name')
-        section = request.form.get('section')
-        phone_number = request.form.get('phone_number')
-        email = request.form.get('email')
-        college = request.form.get('college')
-        address = request.form.get('address')
-        
-        if not all([roll_number, student_name, email, phone_number]):
-            flash('Please fill in all required fields', 'error')
-            return render_template('create_student.html')
-        
-        try:
-            phone_number = int(phone_number)
-        except ValueError:
-            flash('Phone number must be a valid number', 'error')
-            return render_template('create_student.html')
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Check if roll number already exists
-        cursor.execute('SELECT * FROM student WHERE roll_number = ?', (roll_number,))
-        if cursor.fetchone():
-            conn.close()
-            flash('Roll number already exists', 'error')
-            return render_template('create_student.html')
-        
-        cursor.execute('''
-            INSERT INTO student(roll_number, student_name, section, email, address, phone_number, college)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (roll_number, student_name, section, email, address, phone_number, college))
-        
-        conn.commit()
-        conn.close()
-        
-        flash('Student created successfully!', 'success')
-        return redirect(url_for('home'))
-    
-    return render_template('create_student.html')
-
-@app.route('/student/<roll_number>')
-def student_profile(roll_number):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM student WHERE roll_number = ?', (roll_number,))
-    student = cursor.fetchone()
-    conn.close()
-    
-    if not student:
-        flash('Student not found', 'error')
-        return redirect(url_for('home'))
-    
-    return render_template('profile.html', student=student)
-
-@app.route('/student/<roll_number>/edit', methods=['GET', 'POST'])
-def edit_student(roll_number):
-    conn = get_db_connection()
+    conn = get_db()
     cursor = conn.cursor()
     
-    if request.method == 'POST':
-        student_name = request.form.get('student_name')
-        section = request.form.get('section')
-        phone_number = request.form.get('phone_number')
-        email = request.form.get('email')
-        college = request.form.get('college')
-        address = request.form.get('address')
-        
-        if not all([student_name, email, phone_number]):
-            flash('Please fill in all required fields', 'error')
-            cursor.execute('SELECT * FROM student WHERE roll_number = ?', (roll_number,))
-            student = cursor.fetchone()
-            conn.close()
-            return render_template('edit_student.html', student=student)
-        
-        try:
-            phone_number = int(phone_number)
-        except ValueError:
-            flash('Phone number must be a valid number', 'error')
-            cursor.execute('SELECT * FROM student WHERE roll_number = ?', (roll_number,))
-            student = cursor.fetchone()
-            conn.close()
-            return render_template('edit_student.html', student=student)
-        
-        cursor.execute('''
-            UPDATE student 
-            SET student_name = ?, section = ?, email = ?, address = ?, phone_number = ?, college = ?
-            WHERE roll_number = ?
-        ''', (student_name, section, email, address, phone_number, college, roll_number))
-        
-        conn.commit()
+    # Check if faculty already exists
+    cursor.execute('SELECT * FROM faculty WHERE faculty_name = ?', (faculty_name,))
+    if cursor.fetchone():
         conn.close()
-        
-        flash('Student updated successfully!', 'success')
-        return redirect(url_for('home'))
+        return jsonify({'error': 'Faculty name already exists'}), 400
     
-    cursor.execute('SELECT * FROM student WHERE roll_number = ?', (roll_number,))
-    student = cursor.fetchone()
-    conn.close()
-    
-    if not student:
-        flash('Student not found', 'error')
-        return redirect(url_for('home'))
-    
-    return render_template('edit_student.html', student=student)
-
-@app.route('/student/<roll_number>/delete', methods=['POST'])
-def delete_student(roll_number):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM student WHERE roll_number = ?', (roll_number,))
+    # Hash password and insert
+    hashed_password = generate_password_hash(password)
+    cursor.execute('INSERT INTO faculty(faculty_name, password) VALUES (?, ?)', 
+                  (faculty_name, hashed_password))
     conn.commit()
     conn.close()
     
-    flash('Student deleted successfully!', 'success')
-    return redirect(url_for('home'))
+    return jsonify({'message': 'Registration successful'}), 201
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.json
+    faculty_name = data.get('faculty_name')
+    password = data.get('password')
+    
+    if not faculty_name or not password:
+        return jsonify({'error': 'Faculty name and password are required'}), 400
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM faculty WHERE faculty_name = ?', (faculty_name,))
+    faculty = cursor.fetchone()
+    conn.close()
+    
+    if faculty and check_password_hash(faculty['password'], password):
+        session['faculty_id'] = faculty['faculty_id']
+        session['faculty_name'] = faculty['faculty_name']
+        return jsonify({'message': 'Login successful', 'faculty_name': faculty['faculty_name']}), 200
+    else:
+        return jsonify({'error': 'Invalid credentials'}), 401
+
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'message': 'Logout successful'}), 200
+
+@app.route('/api/check-auth', methods=['GET'])
+def check_auth():
+    if 'faculty_id' in session:
+        return jsonify({'authenticated': True, 'faculty_name': session.get('faculty_name')}), 200
+    return jsonify({'authenticated': False}), 401
+
+# Student routes
+@app.route('/api/students', methods=['GET'])
+def get_students():
+    if 'faculty_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT roll_number, student_name, section FROM student')
+    students = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    
+    return jsonify(students), 200
+
+@app.route('/api/students', methods=['POST'])
+def create_student():
+    if 'faculty_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.json
+    roll_number = data.get('roll_number')
+    student_name = data.get('student_name')
+    section = data.get('section')
+    email = data.get('email')
+    address = data.get('address')
+    phone_number = data.get('phone_number')
+    college = data.get('college')
+    
+    if not all([roll_number, student_name, email, phone_number]):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    # Check if roll number already exists
+    cursor.execute('SELECT * FROM student WHERE roll_number = ?', (roll_number,))
+    if cursor.fetchone():
+        conn.close()
+        return jsonify({'error': 'Roll number already exists'}), 400
+    
+    cursor.execute('''
+        INSERT INTO student(roll_number, student_name, section, email, address, phone_number, college)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (roll_number, student_name, section, email, address, phone_number, college))
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'message': 'Student created successfully'}), 201
+
+@app.route('/api/students/<roll_number>', methods=['GET'])
+def get_student(roll_number):
+    if 'faculty_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM student WHERE roll_number = ?', (roll_number,))
+    student = cursor.fetchone()
+    conn.close()
+    
+    if student:
+        return jsonify(dict(student)), 200
+    return jsonify({'error': 'Student not found'}), 404
+
+@app.route('/api/students/<roll_number>', methods=['PUT'])
+def update_student(roll_number):
+    if 'faculty_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.json
+    student_name = data.get('student_name')
+    section = data.get('section')
+    email = data.get('email')
+    address = data.get('address')
+    phone_number = data.get('phone_number')
+    college = data.get('college')
+    
+    if not all([student_name, email, phone_number]):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        UPDATE student 
+        SET student_name = ?, section = ?, email = ?, address = ?, phone_number = ?, college = ?
+        WHERE roll_number = ?
+    ''', (student_name, section, email, address, phone_number, college, roll_number))
+    
+    if cursor.rowcount == 0:
+        conn.close()
+        return jsonify({'error': 'Student not found'}), 404
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'message': 'Student updated successfully'}), 200
+
+@app.route('/api/students/<roll_number>', methods=['DELETE'])
+def delete_student(roll_number):
+    if 'faculty_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM student WHERE roll_number = ?', (roll_number,))
+    
+    if cursor.rowcount == 0:
+        conn.close()
+        return jsonify({'error': 'Student not found'}), 404
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'message': 'Student deleted successfully'}), 200
+
+# Serve React app
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "" and os.path.exists(app.static_folder + '/' + path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':
-    init_db()
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
+
 

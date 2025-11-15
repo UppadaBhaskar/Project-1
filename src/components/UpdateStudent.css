@@ -1,0 +1,98 @@
+.update-student-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: white;
+  min-height: 100vh;
+}
+
+.form-wrapper {
+  border: 1px solid black;
+  padding: 20px;
+  background-color: white;
+}
+
+.form-wrapper h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: bold;
+  color: black;
+}
+
+.form-box {
+  background-color: #e0e0e0;
+  padding: 30px;
+  border-radius: 8px;
+  border: 1px solid black;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: black;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid black;
+  border-radius: 4px;
+  font-size: 16px;
+  background-color: white;
+}
+
+.disabled-input {
+  background-color: #f0f0f0 !important;
+  cursor: not-allowed;
+  color: #666;
+}
+
+.update-student-button {
+  padding: 12px 30px;
+  background-color: #90ee90;
+  color: black;
+  border: 1px solid #4caf50;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.update-student-button:hover {
+  background-color: #7acc7a;
+}
+
+.cancel-button {
+  padding: 12px 30px;
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-right: 10px;
+}
+
+.cancel-button:hover {
+  background-color: #ff5252;
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+
