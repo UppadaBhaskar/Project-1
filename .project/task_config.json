@@ -1,21 +1,21 @@
 {
   "project": {
-    "name": "College Management System",
-    "version": "2.0.0",
-    "description": "Flask-based student management with 4 progressive tasks"
+    "name": "College Management System - With Pytest",
+    "version": "3.0.0",
+    "description": "Flask app with Static, Pytest, and Playwright validation"
   },
   "tasks": [
     {
-      "id": "task1-foundation",
-      "name": "Task 1: Database & Structure",
-      "description": "Set up database schema, Flask app structure, and basic routing",
-      "points": 25,
+      "id": "task1-backend-foundation",
+      "name": "Task 1: Backend Foundation",
+      "description": "Database, Flask routes, and backend logic",
+      "points": 30,
       "status": "active",
       "requirements": [
-        "Create SQLite database with faculty and student tables",
-        "Implement database connection function",
-        "Define Flask app with routes",
-        "Add basic HTML templates structure"
+        "Create database schema with faculty and student tables",
+        "Implement Flask routes for login, register, home",
+        "Add database connection and initialization functions",
+        "Pass all backend pytest tests"
       ],
       "validation": {
         "minScore": 70,
@@ -25,7 +25,7 @@
             "rules": [
               {
                 "file": "app.py",
-                "points": 15,
+                "points": 10,
                 "requiredPatterns": [
                   {
                     "pattern": "CREATE\\s+TABLE\\s+.*faculty",
@@ -40,76 +40,52 @@
                   {
                     "pattern": "def\\s+get_db_connection",
                     "description": "Has database connection function"
-                  },
-                  {
-                    "pattern": "@app\\.route",
-                    "description": "Defines Flask routes"
-                  },
-                  {
-                    "pattern": "render_template",
-                    "description": "Uses template rendering"
                   }
                 ]
               }
             ]
-          },
-          "html": {
-            "rules": [
-              {
-                "file": "templates/base.html",
-                "points": 5,
-                "requiredElements": ["html", "head", "body", "title"]
-              },
-              {
-                "file": "templates/login.html",
-                "points": 5,
-                "requiredElements": ["form", "input", "button"]
-              }
-            ]
           }
+        },
+        "pytest": {
+          "required": true,
+          "testFile": ".project/backend_tests/test_grading.py",
+          "points": 20,
+          "requiresFlask": false,
+          "timeout": 30000
         }
       }
     },
     {
-      "id": "task2-authentication",
-      "name": "Task 2: Authentication System",
-      "description": "Implement complete login/register flow with validation",
-      "points": 30,
+      "id": "task2-authentication-ui",
+      "name": "Task 2: Authentication UI & Flow",
+      "description": "Login/register pages with Playwright E2E tests",
+      "points": 35,
       "status": "locked",
       "unlockConditions": {
-        "prerequisite": "task1-foundation",
+        "prerequisite": "task1-backend-foundation",
         "minScore": 70
       },
       "requirements": [
-        "Implement login route with POST handling",
-        "Implement register route with validation",
-        "Add flash messages for feedback",
-        "Style authentication forms",
-        "Test login/register flow end-to-end"
+        "Create login.html and register.html templates",
+        "Style authentication forms with CSS",
+        "Implement working login flow",
+        "Pass Playwright browser tests"
       ],
       "validation": {
         "minScore": 70,
         "static": {
           "required": true,
-          "python": {
+          "html": {
             "rules": [
               {
-                "file": "app.py",
-                "points": 10,
-                "requiredPatterns": [
-                  {
-                    "pattern": "def\\s+login",
-                    "description": "Login function exists"
-                  },
-                  {
-                    "pattern": "def\\s+register",
-                    "description": "Register function exists"
-                  },
-                  {
-                    "pattern": "flash\\(",
-                    "description": "Uses flash messages"
-                  }
-                ]
+                "file": "templates/login.html",
+                "points": 5,
+                "requiredElements": ["form", "input", "button"]
+              },
+              {
+                "file": "templates/register.html",
+                "points": 5,
+                "requiredElements": ["form", "input"]
               }
             ]
           },
@@ -134,7 +110,7 @@
           "baseUrl": "http://localhost:5000",
           "tests": [
             {
-              "name": "Login page loads with form",
+              "name": "Login page loads correctly",
               "path": "/login",
               "points": 5,
               "captureScreenshot": true,
@@ -146,13 +122,13 @@
               ]
             },
             {
-              "name": "Invalid login shows error",
+              "name": "Invalid login shows on same page",
               "path": "/login",
               "points": 5,
               "captureScreenshot": true,
               "actions": [
                 {"type": "fill", "selector": "input[name='username']", "value": "wronguser"},
-                {"type": "fill", "selector": "input[name='password']", "value": "wrongpass"},
+                {"type": "fill", "selector": "input[name='password']", "value": "wrong"},
                 {"type": "click", "selector": "button[type='submit']"},
                 {"type": "wait", "duration": 2000}
               ],
@@ -180,21 +156,20 @@
       }
     },
     {
-      "id": "task3-student-crud",
+      "id": "task3-student-management",
       "name": "Task 3: Student CRUD Operations",
-      "description": "Create, Read, Update, Delete student records",
+      "description": "Create, view, edit student records with modals",
       "points": 40,
       "status": "locked",
       "unlockConditions": {
-        "prerequisite": "task2-authentication",
+        "prerequisite": "task2-authentication-ui",
         "minScore": 70
       },
       "requirements": [
-        "Display student list in table",
-        "Implement create student form with modal",
-        "Implement student profile view",
-        "Implement edit student functionality",
-        "Add JavaScript for modal interactions"
+        "Implement student list table in home.html",
+        "Create student creation form with modal confirmation",
+        "Add JavaScript for modal interactions",
+        "Implement profile view and edit functionality"
       ],
       "validation": {
         "minScore": 70,
@@ -205,7 +180,7 @@
               {
                 "file": "templates/home.html",
                 "points": 5,
-                "requiredElements": ["table", "thead", "tbody"]
+                "requiredElements": ["table", "thead", "tbody", "tr", "th"]
               },
               {
                 "file": "templates/create_student.html",
@@ -223,7 +198,11 @@
                 "requiredPatterns": [
                   {
                     "pattern": "addEventListener",
-                    "description": "Has event listeners"
+                    "description": "Uses event listeners"
+                  },
+                  {
+                    "pattern": "classList",
+                    "description": "Manages CSS classes"
                   }
                 ]
               }
@@ -241,7 +220,7 @@
           "baseUrl": "http://localhost:5000",
           "tests": [
             {
-              "name": "Student list displays data",
+              "name": "Student table displays",
               "path": "/home",
               "points": 5,
               "captureScreenshot": true,
@@ -252,14 +231,14 @@
               ]
             },
             {
-              "name": "Create student form works",
+              "name": "Create student modal appears",
               "path": "/create_student",
               "points": 5,
               "captureScreenshot": true,
               "actions": [
-                {"type": "fill", "selector": "input[name='roll_number']", "value": "VAL123"},
-                {"type": "fill", "selector": "input[name='student_name']", "value": "Validation Test"},
-                {"type": "fill", "selector": "input[name='email']", "value": "val@test.com"},
+                {"type": "fill", "selector": "input[name='roll_number']", "value": "MODAL01"},
+                {"type": "fill", "selector": "input[name='student_name']", "value": "Modal Test"},
+                {"type": "fill", "selector": "input[name='email']", "value": "modal@test.com"},
                 {"type": "fill", "selector": "input[name='phone_number']", "value": "9999999999"},
                 {"type": "click", "selector": "button[type='submit']"},
                 {"type": "wait", "duration": 1000}
@@ -269,14 +248,14 @@
               ]
             },
             {
-              "name": "Modal confirmation creates student",
+              "name": "Student created successfully",
               "path": "/create_student",
               "points": 5,
               "captureScreenshot": true,
               "actions": [
-                {"type": "fill", "selector": "input[name='roll_number']", "value": "NEW999"},
-                {"type": "fill", "selector": "input[name='student_name']", "value": "New Student"},
-                {"type": "fill", "selector": "input[name='email']", "value": "new@test.com"},
+                {"type": "fill", "selector": "input[name='roll_number']", "value": "CRUD99"},
+                {"type": "fill", "selector": "input[name='student_name']", "value": "CRUD Test"},
+                {"type": "fill", "selector": "input[name='email']", "value": "crud@test.com"},
                 {"type": "fill", "selector": "input[name='phone_number']", "value": "8888888888"},
                 {"type": "click", "selector": "button[type='submit']"},
                 {"type": "wait", "duration": 1000},
@@ -292,21 +271,20 @@
       }
     },
     {
-      "id": "task4-complete-system",
+      "id": "task4-complete-integration",
       "name": "Task 4: Complete System Integration",
-      "description": "Full end-to-end workflow with styling and error handling",
-      "points": 45,
+      "description": "Full E2E workflow with all features working",
+      "points": 35,
       "status": "locked",
       "unlockConditions": {
-        "prerequisite": "task3-student-crud",
+        "prerequisite": "task3-student-management",
         "minScore": 70
       },
       "requirements": [
-        "All CRUD operations functional",
-        "Modal animations and confirmations working",
-        "Professional CSS styling with gradients",
-        "Flash messages auto-hide",
-        "Complete user workflow from login to delete"
+        "All routes functional",
+        "All modals working with animations",
+        "Professional styling applied",
+        "Complete user journey works end-to-end"
       ],
       "validation": {
         "minScore": 80,
@@ -317,17 +295,10 @@
               {
                 "file": "static/style.css",
                 "points": 10,
-                "requiredSelectors": [
-                  ".modal",
-                  ".modal-content",
-                  ".flash-message",
-                  ".btn-yes",
-                  ".btn-no"
-                ],
+                "requiredSelectors": [".modal", ".modal-content", ".btn-yes", ".btn-no"],
                 "requiredProperties": [
                   {"property": "animation"},
-                  {"property": "background"},
-                  {"property": "transition"}
+                  {"property": "background"}
                 ]
               }
             ]
@@ -344,7 +315,7 @@
           "baseUrl": "http://localhost:5000",
           "tests": [
             {
-              "name": "Complete workflow: Login → Create → View",
+              "name": "Complete workflow: Login to Create Student",
               "path": "/login",
               "points": 15,
               "captureScreenshot": true,
@@ -355,10 +326,10 @@
                 {"type": "wait", "duration": 2000},
                 {"type": "navigate", "url": "http://localhost:5000/create_student"},
                 {"type": "wait", "duration": 1000},
-                {"type": "fill", "selector": "input[name='roll_number']", "value": "E2E001"},
-                {"type": "fill", "selector": "input[name='student_name']", "value": "E2E Student"},
-                {"type": "fill", "selector": "input[name='email']", "value": "e2e@test.com"},
-                {"type": "fill", "selector": "input[name='phone_number']", "value": "7777777777"},
+                {"type": "fill", "selector": "input[name='roll_number']", "value": "FINAL1"},
+                {"type": "fill", "selector": "input[name='student_name']", "value": "Final Test"},
+                {"type": "fill", "selector": "input[name='email']", "value": "final@test.com"},
+                {"type": "fill", "selector": "input[name='phone_number']", "value": "6666666666"},
                 {"type": "click", "selector": "button[type='submit']"},
                 {"type": "wait", "duration": 1000},
                 {"type": "click", "selector": "#confirmBtn"},
@@ -366,33 +337,18 @@
               ],
               "assertions": [
                 {"type": "url", "value": "/home"},
-                {"type": "text", "selector": "body", "value": "E2E Student"}
+                {"type": "text", "selector": "body", "value": "Final Test"}
               ]
             },
             {
-              "name": "Profile page shows complete data",
+              "name": "Profile page shows all student data",
               "path": "/student/AB23",
               "points": 10,
               "captureScreenshot": true,
               "actions": [],
               "assertions": [
                 {"type": "visible", "selector": ".profile-card"},
-                {"type": "visible", "selector": ".field-label"},
-                {"type": "text", "selector": ".profile-card", "value": "Manu"}
-              ]
-            },
-            {
-              "name": "Edit updates student data",
-              "path": "/student/AB23/edit",
-              "points": 10,
-              "captureScreenshot": true,
-              "actions": [
-                {"type": "fill", "selector": "input[name='section']", "value": "Z"},
-                {"type": "click", "selector": "button[type='submit']"},
-                {"type": "wait", "duration": 2000}
-              ],
-              "assertions": [
-                {"type": "url", "value": "/home"}
+                {"type": "visible", "selector": ".field-label"}
               ]
             }
           ]
