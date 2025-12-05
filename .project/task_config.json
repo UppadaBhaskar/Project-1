@@ -1,0 +1,707 @@
+{
+  "project": {
+    "name": "College Management System",
+    "version": "1.0.0",
+    "description": "A Flask-based student management system with authentication and CRUD operations",
+    "author": "Educational Project"
+  },
+  "tasks": [
+    {
+      "id": "task1-database-setup",
+      "name": "Task 1: Database Schema Setup",
+      "description": "Create SQLite database with faculty and student tables",
+      "points": 15,
+      "status": "active",
+      "requirements": [
+        "Create app.py with database initialization",
+        "Define faculty table with id, name, password",
+        "Define student table with roll number, name, section, email, phone, college, address",
+        "Include database connection function"
+      ],
+      "validation": {
+        "minScore": 70,
+        "static": {
+          "required": true,
+          "javascript": {
+            "rules": [
+              {
+                "file": "app.py",
+                "points": 15,
+                "requiredPatterns": [
+                  {
+                    "pattern": "CREATE\\s+TABLE\\s+.*faculty",
+                    "flags": "i",
+                    "description": "Creates faculty table"
+                  },
+                  {
+                    "pattern": "CREATE\\s+TABLE\\s+.*student",
+                    "flags": "i",
+                    "description": "Creates student table"
+                  },
+                  {
+                    "pattern": "faculty_name",
+                    "description": "Faculty table has faculty_name column"
+                  },
+                  {
+                    "pattern": "roll_number",
+                    "description": "Student table has roll_number column"
+                  },
+                  {
+                    "pattern": "def\\s+get_db_connection",
+                    "description": "Database connection function exists"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "task2-auth-pages",
+      "name": "Task 2: Authentication Pages (HTML/CSS)",
+      "description": "Create login and registration pages with proper styling",
+      "points": 20,
+      "status": "active",
+      "unlockConditions": {
+        "prerequisite": "task1-database-setup",
+        "minScore": 70
+      },
+      "requirements": [
+        "Create login.html with form elements",
+        "Create register.html with form elements",
+        "Style authentication forms in style.css",
+        "Include proper form labels and inputs"
+      ],
+      "validation": {
+        "minScore": 70,
+        "static": {
+          "required": true,
+          "html": {
+            "rules": [
+              {
+                "file": "templates/login.html",
+                "points": 8,
+                "requiredElements": ["form", "input", "button", "label"],
+                "requiredAttributes": [
+                  {"element": "input", "name": "name"},
+                  {"element": "input", "name": "type"},
+                  {"element": "form", "name": "method"}
+                ]
+              },
+              {
+                "file": "templates/register.html",
+                "points": 7,
+                "requiredElements": ["form", "input", "button"]
+              }
+            ]
+          },
+          "css": {
+            "rules": [
+              {
+                "file": "static/style.css",
+                "points": 5,
+                "requiredSelectors": [".auth-container", ".auth-box", ".btn"],
+                "requiredProperties": [
+                  {"property": "background-color"},
+                  {"property": "padding"},
+                  {"property": "border-radius"}
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "task3-flask-routes",
+      "name": "Task 3: Flask Routes & Login Flow",
+      "description": "Implement Flask routes for authentication with proper redirects",
+      "points": 25,
+      "status": "locked",
+      "unlockConditions": {
+        "prerequisite": "task2-auth-pages",
+        "minScore": 70
+      },
+      "requirements": [
+        "Create /login route (GET and POST)",
+        "Create /register route (GET and POST)",
+        "Implement login validation logic",
+        "Add flash messages for errors",
+        "Redirect to home after successful login"
+      ],
+      "validation": {
+        "minScore": 70,
+        "static": {
+          "required": true,
+          "javascript": {
+            "rules": [
+              {
+                "file": "app.py",
+                "points": 10,
+                "requiredPatterns": [
+                  {
+                    "pattern": "@app\\.route\\(['\"]/(login|register)['\"]",
+                    "description": "Has login or register route"
+                  },
+                  {
+                    "pattern": "def\\s+login",
+                    "description": "Login function defined"
+                  },
+                  {
+                    "pattern": "def\\s+register",
+                    "description": "Register function defined"
+                  },
+                  {
+                    "pattern": "flash\\(",
+                    "description": "Uses flash messages"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "dynamic": {
+          "required": true,
+          "requiresFlask": true,
+          "flaskConfig": {
+            "appPath": "app.py",
+            "port": 5000,
+            "startupTimeout": 15000
+          },
+          "baseUrl": "http://localhost:5000",
+          "tests": [
+            {
+              "name": "Login page loads",
+              "path": "/login",
+              "points": 5,
+              "captureScreenshot": true,
+              "actions": [],
+              "assertions": [
+                {"type": "visible", "selector": "form"},
+                {"type": "exists", "selector": "input[name='username']"},
+                {"type": "exists", "selector": "input[name='password']"},
+                {"type": "exists", "selector": "button[type='submit']"}
+              ]
+            },
+            {
+              "name": "Successful login redirects to home",
+              "path": "/login",
+              "points": 10,
+              "captureScreenshot": true,
+              "actions": [
+                {"type": "fill", "selector": "input[name='username']", "value": "abc"},
+                {"type": "fill", "selector": "input[name='password']", "value": "abc123"},
+                {"type": "click", "selector": "button[type='submit']"},
+                {"type": "wait", "duration": 2000}
+              ],
+              "assertions": [
+                {"type": "url", "value": "/home"}
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "task4-student-list",
+      "name": "Task 4: Student List Page",
+      "description": "Create home page displaying student data in a table",
+      "points": 20,
+      "status": "locked",
+      "unlockConditions": {
+        "prerequisite": "task3-flask-routes",
+        "minScore": 70
+      },
+      "requirements": [
+        "Create /home route",
+        "Display students in HTML table",
+        "Show roll number, name, section",
+        "Add 'View Profile' button for each student",
+        "Style table with hover effects"
+      ],
+      "validation": {
+        "minScore": 70,
+        "static": {
+          "required": true,
+          "html": {
+            "rules": [
+              {
+                "file": "templates/home.html",
+                "points": 10,
+                "requiredElements": ["table", "thead", "tbody", "tr", "th", "td"]
+              }
+            ]
+          },
+          "css": {
+            "rules": [
+              {
+                "file": "static/style.css",
+                "points": 5,
+                "requiredSelectors": [".student-table", ".student-table thead", ".student-table td"]
+              }
+            ]
+          }
+        },
+        "dynamic": {
+          "required": true,
+          "requiresFlask": true,
+          "flaskConfig": {
+            "appPath": "app.py",
+            "port": 5000,
+            "startupTimeout": 15000
+          },
+          "baseUrl": "http://localhost:5000",
+          "tests": [
+            {
+              "name": "Home page displays student table",
+              "path": "/home",
+              "points": 5,
+              "captureScreenshot": true,
+              "actions": [],
+              "assertions": [
+                {"type": "visible", "selector": "table"},
+                {"type": "visible", "selector": "thead"},
+                {"type": "exists", "selector": "th"},
+                {"type": "count", "selector": "th", "value": 4}
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "task5-create-student",
+      "name": "Task 5: Create Student Functionality",
+      "description": "Implement student creation with form validation and modal confirmation",
+      "points": 30,
+      "status": "locked",
+      "unlockConditions": {
+        "prerequisite": "task4-student-list",
+        "minScore": 70
+      },
+      "requirements": [
+        "Create /create_student route (GET and POST)",
+        "Build create_student.html form",
+        "Add JavaScript confirmation modal",
+        "Validate required fields",
+        "Insert student into database",
+        "Redirect to home after creation"
+      ],
+      "validation": {
+        "minScore": 70,
+        "static": {
+          "required": true,
+          "html": {
+            "rules": [
+              {
+                "file": "templates/create_student.html",
+                "points": 8,
+                "requiredElements": ["form", "input"],
+                "requiredAttributes": [
+                  {"element": "form", "name": "id"},
+                  {"element": "input", "name": "name"}
+                ]
+              }
+            ]
+          },
+          "javascript": {
+            "rules": [
+              {
+                "file": "static/script.js",
+                "points": 7,
+                "requiredFunctions": ["showDeleteModal"],
+                "requiredPatterns": [
+                  {
+                    "pattern": "addEventListener",
+                    "description": "Uses event listeners"
+                  },
+                  {
+                    "pattern": "classList\\.add|classList\\.remove",
+                    "description": "Manages modal visibility"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "dynamic": {
+          "required": true,
+          "requiresFlask": true,
+          "flaskConfig": {
+            "appPath": "app.py",
+            "port": 5000,
+            "startupTimeout": 15000
+          },
+          "baseUrl": "http://localhost:5000",
+          "tests": [
+            {
+              "name": "Create student form loads",
+              "path": "/create_student",
+              "points": 5,
+              "captureScreenshot": true,
+              "actions": [],
+              "assertions": [
+                {"type": "visible", "selector": "form#createStudentForm"},
+                {"type": "exists", "selector": "input[name='roll_number']"},
+                {"type": "exists", "selector": "input[name='student_name']"},
+                {"type": "exists", "selector": "button[type='submit']"}
+              ]
+            },
+            {
+              "name": "Modal appears on form submit",
+              "path": "/create_student",
+              "points": 5,
+              "captureScreenshot": true,
+              "actions": [
+                {"type": "fill", "selector": "input[name='roll_number']", "value": "TEST123"},
+                {"type": "fill", "selector": "input[name='student_name']", "value": "Test Student"},
+                {"type": "fill", "selector": "input[name='email']", "value": "test@test.com"},
+                {"type": "fill", "selector": "input[name='phone_number']", "value": "9876543210"},
+                {"type": "click", "selector": "button[type='submit']"},
+                {"type": "wait", "duration": 1000}
+              ],
+              "assertions": [
+                {"type": "visible", "selector": "#confirmModal"},
+                {"type": "visible", "selector": "#confirmBtn"}
+              ]
+            },
+            {
+              "name": "Student creation successful",
+              "path": "/create_student",
+              "points": 5,
+              "captureScreenshot": true,
+              "actions": [
+                {"type": "fill", "selector": "input[name='roll_number']", "value": "AUTO456"},
+                {"type": "fill", "selector": "input[name='student_name']", "value": "Auto Test"},
+                {"type": "fill", "selector": "input[name='email']", "value": "auto@test.com"},
+                {"type": "fill", "selector": "input[name='phone_number']", "value": "1234567890"},
+                {"type": "click", "selector": "button[type='submit']"},
+                {"type": "wait", "duration": 1000},
+                {"type": "click", "selector": "#confirmBtn"},
+                {"type": "wait", "duration": 2000}
+              ],
+              "assertions": [
+                {"type": "url", "value": "/home"}
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "task6-student-profile",
+      "name": "Task 6: Student Profile View",
+      "description": "Display detailed student information on profile page",
+      "points": 15,
+      "status": "locked",
+      "unlockConditions": {
+        "prerequisite": "task5-create-student",
+        "minScore": 70
+      },
+      "requirements": [
+        "Create /student/<roll_number> route",
+        "Create profile.html template",
+        "Display all student fields",
+        "Add 'Edit' button linking to edit page",
+        "Add delete button with confirmation"
+      ],
+      "validation": {
+        "minScore": 70,
+        "static": {
+          "required": true,
+          "html": {
+            "rules": [
+              {
+                "file": "templates/profile.html",
+                "points": 10,
+                "requiredElements": ["div"],
+                "requiredAttributes": [
+                  {"element": "div", "name": "class"}
+                ]
+              }
+            ]
+          }
+        },
+        "dynamic": {
+          "required": true,
+          "requiresFlask": true,
+          "flaskConfig": {
+            "appPath": "app.py",
+            "port": 5000,
+            "startupTimeout": 15000
+          },
+          "baseUrl": "http://localhost:5000",
+          "tests": [
+            {
+              "name": "Profile page displays student data",
+              "path": "/student/AB23",
+              "points": 5,
+              "captureScreenshot": true,
+              "actions": [],
+              "assertions": [
+                {"type": "visible", "selector": ".profile-card"},
+                {"type": "text", "selector": ".field-value", "value": "Manu"}
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "task7-edit-student",
+      "name": "Task 7: Edit Student Functionality",
+      "description": "Implement student data editing with validation",
+      "points": 25,
+      "status": "locked",
+      "unlockConditions": {
+        "prerequisite": "task6-student-profile",
+        "minScore": 70
+      },
+      "requirements": [
+        "Create /student/<roll_number>/edit route",
+        "Create edit_student.html form",
+        "Pre-populate form with existing data",
+        "Make roll number readonly",
+        "Validate and update student data",
+        "Redirect to home after successful update"
+      ],
+      "validation": {
+        "minScore": 70,
+        "static": {
+          "required": true,
+          "html": {
+            "rules": [
+              {
+                "file": "templates/edit_student.html",
+                "points": 10,
+                "requiredElements": ["form", "input"]
+              }
+            ]
+          }
+        },
+        "dynamic": {
+          "required": true,
+          "requiresFlask": true,
+          "flaskConfig": {
+            "appPath": "app.py",
+            "port": 5000,
+            "startupTimeout": 15000
+          },
+          "baseUrl": "http://localhost:5000",
+          "tests": [
+            {
+              "name": "Edit form loads with student data",
+              "path": "/student/AB23/edit",
+              "points": 8,
+              "captureScreenshot": true,
+              "actions": [],
+              "assertions": [
+                {"type": "visible", "selector": "form"},
+                {"type": "value", "selector": "input[name='roll_number']", "value": "AB23"},
+                {"type": "visible", "selector": "input[name='student_name']"}
+              ]
+            },
+            {
+              "name": "Student data updates successfully",
+              "path": "/student/AB23/edit",
+              "points": 7,
+              "captureScreenshot": true,
+              "actions": [
+                {"type": "fill", "selector": "input[name='student_name']", "value": "Manu Updated"},
+                {"type": "fill", "selector": "input[name='section']", "value": "B"},
+                {"type": "click", "selector": "button[type='submit']"},
+                {"type": "wait", "duration": 2000}
+              ],
+              "assertions": [
+                {"type": "url", "value": "/home"}
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "task8-delete-student",
+      "name": "Task 8: Delete Student with Confirmation",
+      "description": "Implement student deletion with JavaScript modal confirmation",
+      "points": 20,
+      "status": "locked",
+      "unlockConditions": {
+        "prerequisite": "task7-edit-student",
+        "minScore": 70
+      },
+      "requirements": [
+        "Create /student/<roll_number>/delete route",
+        "Add delete modal in profile.html",
+        "Implement showDeleteModal() function in script.js",
+        "Handle modal confirmation",
+        "Delete student from database",
+        "Redirect to home with success message"
+      ],
+      "validation": {
+        "minScore": 70,
+        "static": {
+          "required": true,
+          "javascript": {
+            "rules": [
+              {
+                "file": "static/script.js",
+                "points": 10,
+                "requiredFunctions": ["showDeleteModal"],
+                "requiredPatterns": [
+                  {
+                    "pattern": "getElementById.*deleteModal",
+                    "description": "References delete modal"
+                  }
+                ]
+              }
+            ]
+          },
+          "html": {
+            "rules": [
+              {
+                "file": "templates/profile.html",
+                "points": 5,
+                "requiredElements": ["div"],
+                "requiredAttributes": [
+                  {"element": "div", "name": "id"}
+                ]
+              }
+            ]
+          }
+        },
+        "dynamic": {
+          "required": true,
+          "requiresFlask": true,
+          "flaskConfig": {
+            "appPath": "app.py",
+            "port": 5000,
+            "startupTimeout": 15000
+          },
+          "baseUrl": "http://localhost:5000",
+          "tests": [
+            {
+              "name": "Delete modal appears on click",
+              "path": "/student/AB23",
+              "points": 5,
+              "captureScreenshot": true,
+              "actions": [
+                {"type": "click", "selector": ".btn-delete"},
+                {"type": "wait", "duration": 1000}
+              ],
+              "assertions": [
+                {"type": "visible", "selector": "#deleteModal"},
+                {"type": "visible", "selector": "#deleteCancelBtn"}
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "task9-css-styling",
+      "name": "Task 9: Advanced CSS Styling",
+      "description": "Implement responsive design and advanced styles",
+      "points": 15,
+      "status": "locked",
+      "unlockConditions": {
+        "prerequisite": "task8-delete-student",
+        "minScore": 70
+      },
+      "requirements": [
+        "Style tables with hover effects",
+        "Create gradient buttons",
+        "Add modal animations",
+        "Implement flash message auto-hide",
+        "Add responsive container"
+      ],
+      "validation": {
+        "minScore": 70,
+        "static": {
+          "required": true,
+          "css": {
+            "rules": [
+              {
+                "file": "static/style.css",
+                "points": 15,
+                "requiredSelectors": [
+                  ".modal",
+                  ".modal-content",
+                  ".flash-message",
+                  ".btn-yes",
+                  ".btn-no"
+                ],
+                "requiredProperties": [
+                  {"property": "background"},
+                  {"property": "animation"},
+                  {"property": "transition"}
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "task10-complete-integration",
+      "name": "Task 10: Complete System Integration Test",
+      "description": "Full end-to-end workflow test - Login, Create, Edit, Delete",
+      "points": 35,
+      "status": "locked",
+      "unlockConditions": {
+        "prerequisite": "task9-css-styling",
+        "minScore": 70
+      },
+      "requirements": [
+        "All routes functional",
+        "All templates render correctly",
+        "All CRUD operations work",
+        "Modals function properly",
+        "Database operations succeed"
+      ],
+      "validation": {
+        "minScore": 80,
+        "dynamic": {
+          "required": true,
+          "requiresFlask": true,
+          "flaskConfig": {
+            "appPath": "app.py",
+            "port": 5000,
+            "startupTimeout": 15000
+          },
+          "baseUrl": "http://localhost:5000",
+          "tests": [
+            {
+              "name": "Complete workflow: Login → Create → Edit → View",
+              "path": "/login",
+              "points": 35,
+              "captureScreenshot": true,
+              "actions": [
+                {"type": "fill", "selector": "input[name='username']", "value": "abc"},
+                {"type": "fill", "selector": "input[name='password']", "value": "abc123"},
+                {"type": "click", "selector": "button[type='submit']"},
+                {"type": "wait", "duration": 2000},
+                {"type": "navigate", "url": "http://localhost:5000/create_student"},
+                {"type": "wait", "duration": 1000},
+                {"type": "fill", "selector": "input[name='roll_number']", "value": "E2E999"},
+                {"type": "fill", "selector": "input[name='student_name']", "value": "E2E Test Student"},
+                {"type": "fill", "selector": "input[name='email']", "value": "e2e@test.com"},
+                {"type": "fill", "selector": "input[name='phone_number']", "value": "9999999999"},
+                {"type": "click", "selector": "button[type='submit']"},
+                {"type": "wait", "duration": 1000},
+                {"type": "click", "selector": "#confirmBtn"},
+                {"type": "wait", "duration": 3000}
+              ],
+              "assertions": [
+                {"type": "url", "value": "/home"},
+                {"type": "text", "selector": "body", "value": "E2E Test Student"}
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
+
