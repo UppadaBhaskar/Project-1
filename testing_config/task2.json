@@ -1,0 +1,80 @@
+{
+  "id": "task2p1",
+  "validation": {
+    "minScore": 70,
+    "static": {
+      "required": true,
+      "html": {
+        "rules": [
+          {
+            "file": "templates/login.html",
+            "requiredElements": ["form", "input", "button"]
+          },
+          {
+            "file": "templates/register.html",
+            "requiredElements": ["form", "input"]
+          }
+        ]
+      },
+      "css": {
+        "rules": [
+          {
+            "file": "static/style.css",
+            "requiredSelectors": [".auth-container", ".auth-box", ".btn-primary"]
+          }
+        ]
+      }
+    },
+    "dynamic": {
+      "required": true,
+      "requiresFlask": true,
+      "flaskConfig": {
+        "appPath": "app.py",
+        "port": 5000,
+        "startupTimeout": 15000
+      },
+      "baseUrl": "http://localhost:5000",
+      "tests": [
+        {
+          "name": "Login page loads correctly",
+          "path": "/login",
+          "captureScreenshot": true,
+          "actions": [],
+          "assertions": [
+            {"type": "visible", "selector": "form"},
+            {"type": "exists", "selector": "input[name='username']"},
+            {"type": "exists", "selector": "input[name='password']"}
+          ]
+        },
+        {
+          "name": "Invalid login shows on same page",
+          "path": "/login",
+          "captureScreenshot": true,
+          "actions": [
+            {"type": "fill", "selector": "input[name='username']", "value": "wronguser"},
+            {"type": "fill", "selector": "input[name='password']", "value": "wrong"},
+            {"type": "click", "selector": "button[type='submit']"},
+            {"type": "wait", "duration": 2000}
+          ],
+          "assertions": [
+            {"type": "url", "value": "/login"}
+          ]
+        },
+        {
+          "name": "Valid login redirects to home",
+          "path": "/login",
+          "captureScreenshot": true,
+          "actions": [
+            {"type": "fill", "selector": "input[name='username']", "value": "abc"},
+            {"type": "fill", "selector": "input[name='password']", "value": "abc123"},
+            {"type": "click", "selector": "button[type='submit']"},
+            {"type": "wait", "duration": 2000}
+          ],
+          "assertions": [
+            {"type": "url", "value": "/home"}
+          ]
+        }
+      ]
+    }
+  }
+}

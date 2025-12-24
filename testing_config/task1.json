@@ -1,0 +1,36 @@
+{
+    "id": "task1p1",
+    "validation": {
+      "static": {
+        "required": true,
+        "python": {
+          "rules": [
+            {
+              "file": "app.py",
+              "requiredPatterns": [
+                {
+                  "pattern": "CREATE\\s+TABLE\\s+.*faculty",
+                  "flags": "i",
+                  "description": "Creates faculty table"
+                },
+                {
+                  "pattern": "CREATE\\s+TABLE\\s+.*student",
+                  "flags": "i",
+                  "description": "Creates student table"
+                },
+                {
+                  "pattern": "def\\s+get_db_connection",
+                  "description": "Has database connection function"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "pytest": {
+        "required": true,
+        "requiresFlask": false,
+        "timeout": 30000
+      }
+    }
+  }

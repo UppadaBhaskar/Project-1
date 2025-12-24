@@ -1,0 +1,67 @@
+{
+    "id": "task4p1",
+    "validation": {
+      "static": {
+        "required": true,
+        "css": {
+          "rules": [
+            {
+              "file": "static/style.css",
+              "requiredSelectors": [".modal", ".modal-content", ".btn-yes", ".btn-no"],
+              "requiredProperties": [
+                {"property": "animation"},
+                {"property": "background"}
+              ]
+            }
+          ]
+        }
+      },
+      "dynamic": {
+        "required": true,
+        "requiresFlask": true,
+        "flaskConfig": {
+          "appPath": "app.py",
+          "port": 5000,
+          "startupTimeout": 15000
+        },
+        "baseUrl": "http://localhost:5000",
+        "tests": [
+          {
+            "name": "Complete workflow: Login to Create Student",
+            "path": "/login",
+            "captureScreenshot": true,
+            "actions": [
+              {"type": "fill", "selector": "input[name='username']", "value": "abc"},
+              {"type": "fill", "selector": "input[name='password']", "value": "abc123"},
+              {"type": "click", "selector": "button[type='submit']"},
+              {"type": "wait", "duration": 2000},
+              {"type": "navigate", "url": "http://localhost:5000/create_student"},
+              {"type": "wait", "duration": 1000},
+              {"type": "fill", "selector": "input[name='roll_number']", "value": "FINAL1"},
+              {"type": "fill", "selector": "input[name='student_name']", "value": "Final Test"},
+              {"type": "fill", "selector": "input[name='email']", "value": "final@test.com"},
+              {"type": "fill", "selector": "input[name='phone_number']", "value": "6666666666"},
+              {"type": "click", "selector": "button[type='submit']"},
+              {"type": "wait", "duration": 1000},
+              {"type": "click", "selector": "#confirmBtn"},
+              {"type": "wait", "duration": 3000}
+            ],
+            "assertions": [
+              {"type": "url", "value": "/home"},
+              {"type": "text", "selector": "body", "value": "Final Test"}
+            ]
+          },
+          {
+            "name": "Profile page shows all student data",
+            "path": "/student/AB23",
+            "captureScreenshot": true,
+            "actions": [],
+            "assertions": [
+              {"type": "visible", "selector": ".profile-card"},
+              {"type": "visible", "selector": ".field-label"}
+            ]
+          }
+        ]
+      }
+    }
+  }
