@@ -1,0 +1,191 @@
+{
+  "id": "task2p1",
+  "validation": {
+    "minScore": 70,
+      "schema": {
+        "file": "app.py",
+        "tables": {
+          "faculty": {
+            "columns": {
+              "faculty_id": {
+                "column": "faculty_id",
+                "type": "integer",
+                "autoIncrement": true,
+                "primaryKey": true
+              },
+              "faculty_name": {
+                "type": "varchar",
+                "required": true,
+                "notNull": true
+              },
+              "password": {
+                "type": "varchar",
+                "length": 12,
+                "required": true,
+                "notNull": true
+              }
+            }
+          },
+          "student": {
+            "columns": {
+              "roll_number": {
+                "type": "varchar",
+                "length": 10,
+                "primaryKey": true
+              },
+              "student_name": {
+                "type": "varchar",
+                "notNull": true
+              },
+              "section": {
+                "type": "varchar",
+                "length": 5
+              },
+              "email": {
+                "type": "varchar",
+                "notNull": true
+              },
+              "address": {
+                "type": "varchar"
+              },
+              "phone_number": {
+                "type": "integer",
+                "notNull": true
+              },
+              "college": {
+                "type": "varchar"
+              }
+            }
+          }
+        },
+        "inserts": {
+          "student": [
+            {
+              "columns": [
+                "roll_number",
+                "student_name",
+                "section",
+                "email",
+                "address",
+                "phone_number",
+                "college"
+              ],
+              "data": {
+                "roll_number": "AB23",
+                "student_name": "Manu",
+                "section": "A",
+                "email": "manu@example.com",
+                "address": "Banglore",
+                "phone_number": 1234567890,
+                "college": "ABC College"
+              }
+            }
+          ],
+          "faculty": [
+            {
+              "columns": ["faculty_name", "password"],
+              "data": {
+                "faculty_name": "abc",
+                "password": "abc123"
+              }
+            },
+            {
+              "columns": ["faculty_name", "password"],
+              "data": {
+                "faculty_name": "def",
+                "password": "abc123"
+              }
+            }
+          ]
+        },
+        "selects": {
+          "faculty": [
+            {
+              "columns": ["COUNT(*)"],
+              "where": ""
+            }
+          ],
+          "student": [
+            {
+              "columns": ["COUNT(*)"],
+              "where": ""
+            }
+          ]
+        },
+        "updates": {},
+        "deletes": {}
+      },
+      "dynamic": {
+        "required": true,
+        "requiresFlask": true,
+        "flaskConfig": {
+          "appPath": "app.py",
+          "port": 5000,
+          "startupTimeout": 15000
+        },
+        "baseUrl": "http://localhost:5000",
+        "tests": [
+          {
+            "name": "Login page loads correctly",
+            "path": "/login",
+            "captureScreenshot": true,
+            "actions": [],
+            "assertions": [
+              { "type": "visible", "selector": "form" },
+              { "type": "exists", "selector": "input[name='username']" },
+              { "type": "exists", "selector": "input[name='password']" }
+            ]
+          },
+          {
+            "name": "Invalid login shows on same page",
+            "path": "/login",
+            "captureScreenshot": true,
+            "actions": [
+              {
+                "type": "fill",
+                "selector": "input[name='username']",
+                "value": "wronguser"
+              },
+              {
+                "type": "fill",
+                "selector": "input[name='password']",
+                "value": "wrong"
+              },
+              { "type": "click", "selector": "button[type='submit']" },
+              { "type": "wait", "duration": 2000 }
+            ],
+            "assertions": [{ "type": "url", "value": "/login" }]
+          },
+          {
+            "name": "Valid login redirects to home",
+            "path": "/login",
+            "captureScreenshot": true,
+            "actions": [
+              {
+                "type": "fill",
+                "selector": "input[name='username']",
+                "value": "abc"
+              },
+              {
+                "type": "fill",
+                "selector": "input[name='password']",
+                "value": "abc123"
+              },
+              { "type": "click", "selector": "button[type='submit']" },
+              { "type": "wait", "duration": 2000 }
+            ],
+            "assertions": [{ "type": "url", "value": "/home" }]
+          }
+        ]
+      },
+      "pytest": {
+        "required": true,
+        "testFile": [
+          "testing_config/py_tests/tag1.py",
+          "testing_config/py_tests/tag2.py"
+        ],
+        "requiresFlask": false,
+        "timeout": 30000
+      }
+    }
+  }

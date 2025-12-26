@@ -75,6 +75,11 @@
           ]
         }
       ]
+    },
+    "pytest": {
+      "required": true,
+      "requiresFlask": false,
+      "timeout": 30000
     }
   }
 }
