@@ -5,6 +5,7 @@
     "static": {
       "required": true,
       "html": {
+        "isMandatory": true,
         "rules": [
           {
             "file": "templates/login.html",
@@ -17,7 +18,8 @@
         ]
       },
       "css": {
-        "rules": [
+        "isMandatory": true,
+        "rules": [  
           {
             "file": "static/style.css",
             "requiredSelectors": [".auth-container", ".auth-box", ".btn-primary"]
@@ -36,6 +38,7 @@
       "baseUrl": "http://localhost:5000",
       "tests": [
         {
+          "isMandatory": true,
           "name": "Login page loads correctly",
           "path": "/login",
           "captureScreenshot": true,
@@ -47,6 +50,7 @@
           ]
         },
         {
+          "isMandatory": true,
           "name": "Invalid login shows on same page",
           "path": "/login",
           "captureScreenshot": true,
@@ -61,6 +65,7 @@
           ]
         },
         {
+          "isMandatory": true,
           "name": "Valid login redirects to home",
           "path": "/login",
           "captureScreenshot": true,
